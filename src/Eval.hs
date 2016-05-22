@@ -70,15 +70,20 @@ applyExpr expr scope = case expr of
                            case args of
                              (params:body:[]) -> do
                                params <- mkList params
-                               return $ mkFunc (\args -> do
-                                                  initEnv <- createScope $ Just scope
-                                                  bindArgEnv <- bindScope initEnv params args
-                                                  eval body bindArgEnv)
+                               return $ mkTcoFunc body scope (EList params ENil)
+                                                  (\args -> do
+                                                    initEnv <- createScope $ Just scope
+                                                    bindEnv <- bindScope initEnv params args
+                                                    eval body bindEnv)
                              _ -> error "invalid fn*"
                          EList _ _ -> do
                            el <- evalExpr expr scope
                            case el of
                              EList ((Func (Fn f) _):args) _ -> f $ args
+                             EList ((TcoFunc {ast = body, env = fnEnv, params = (EList params ENil)}):args) _ -> do
+                               initEnv <- createScope $ Just fnEnv
+                               bindEnv <- bindScope initEnv params args
+                               eval body bindEnv
                              _ -> error "should apply args to a function."
 
 eval :: SExpr -> Env -> IO SExpr

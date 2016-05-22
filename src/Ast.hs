@@ -26,11 +26,11 @@ data SExpr = ENil
            | EMap (M.Map String SExpr) SExpr
            | EAtom (IORef SExpr) SExpr
            | Func Fn SExpr
-           | MalFunc {fn :: Fn,
+           | TcoFunc {fn :: Fn,
                       ast :: SExpr,
                       env :: Env,
                       params :: SExpr,
-                      macro :: Bool,
+                      ismacro :: Bool,
                       meta :: SExpr}
 
 stringOfList :: Bool -> String -> [SExpr] -> String
@@ -61,7 +61,7 @@ stringOfExpr pr    (EVector items _) = "[" ++ (stringOfList pr " " items) ++ "]"
 stringOfExpr pr    (EMap m _) = "{" ++ (stringOfList pr " " (flatTuples $ M.assocs m)) ++ "}"
 stringOfExpr pr    (EAtom r _) = "(atom " ++ (stringOfExpr pr (unsafePerformIO (readIORef r))) ++ ")"
 stringOfExpr _     (Func f _) = "<fun>"
-stringOfExpr _     (MalFunc {ast=ast, env=fn_env, params=params}) = "(fn* " ++ (show params) ++ " " ++ (show ast) ++ ")"
+stringOfExpr _     (TcoFunc {ast = ast, env = fn_env, params = params}) = "(fn* " ++ (show params) ++ " " ++ (show ast) ++ ")"
 
 instance Show SExpr where show = stringOfExpr True
 
@@ -81,6 +81,19 @@ instance Eq SExpr where
 
 mkFunc fn = Func (Fn fn) ENil
 mkfuncWithMeta fn meta = Func (Fn fn) meta
+
+mkTcoFunc ast env params fn = TcoFunc {fn = (Fn fn),
+                                       ast = ast,
+                                       env = env,
+                                       params = params,
+                                       ismacro = False,
+                                       meta = ENil}
+mkTcoFuncWithMeta ast env params fn meta = TcoFunc {fn = (Fn fn),
+                                                    ast = ast,
+                                                    env = env,
+                                                    params = params,
+                                                    ismacro = False,
+                                                    meta = meta}
 
 mkList (EList lst _) = return lst
 mkList (EVector lst _) = return lst
