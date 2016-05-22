@@ -60,5 +60,23 @@ stringOfExpr _     (MalFunc {ast=ast, env=fn_env, params=params}) = "(fn* " ++ (
 
 instance Show SExpr where show = stringOfExpr True
 
+instance Eq SExpr where
+  ENil == ENil = True
+  (EBool a) == (EBool b) = a == b
+  (ENum a) == (ENum b) = a == b
+  (EString a) == (EString b) = a == b
+  (ESymbol a) == (ESymbol b) = a == b
+  (EList a _) == (EList b _) = a == b
+  (EList a _) == (EVector b _) = a == b
+  (EVector a _) == (EList b _) = a == b
+  (EVector a _) == (EVector b _) = a == b
+  (EMap a _) == (EMap b _) = a == b
+  (EAtom a _) == (EAtom b _) = a == b
+  _ == _ = False
+
 mkFunc fn = Func (Fn fn) ENil
 mkfuncWithMeta fn meta = Func (Fn fn) meta
+
+mkList (EList lst _) = return lst
+mkList (EVector lst _) = return lst
+mkList _ = error "mkList expected a List or Vector"

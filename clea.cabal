@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Ast
                      , Eval
+                     , Scope
                      , Prologue
                      , Lexer
                      , Parser

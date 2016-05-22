@@ -1,6 +1,8 @@
 module Main where
 
-import Eval (eval, Scope)
+import Scope
+import Eval (eval)
+import Ast (Env, SExpr(..))
 import Parser (parseExpr)
 import Prologue (builtins)
 import Control.Lens
@@ -12,21 +14,21 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Control.Exception as E
 
-process :: String -> IO ()
-process expr = E.catch (do
+process :: Env -> String -> IO ()
+process scope expr = E.catch (do
                         let ast = parseExpr expr
-                        result <- eval ast builtins
+                        result <- eval ast scope
                         putStrLn $ show result)
                        (\(E.ErrorCall e) -> do
                         putStrLn e)
 
-loop :: InputT IO ()
-loop = do
+loop :: Env -> InputT IO ()
+loop scope = do
   minput <- getInputLine "λ> "
   case minput of
     Nothing -> do
       outputStrLn "Goodbye."
-    Just input -> (liftIO $ process input) >> loop
+    Just input -> (liftIO $ process scope input) >> (loop scope)
 
 prologueMessage :: String
 prologueMessage = intercalate "\n"
@@ -40,14 +42,16 @@ prologueMessage = intercalate "\n"
 main :: IO ()
 main = do
   args <- getArgs
+  scope <- emptyScope
+  mapM_ (\(k, v) -> (insertValue scope (ESymbol k) v)) builtins
   case (args ^? element 0) of
     Just arg -> if arg == "repl"
                then do
                 putStrLn prologueMessage
-                runInputT defaultSettings loop
+                runInputT defaultSettings (loop scope)
                else do
                 file <- readFile arg
-                process file
+                process scope file
     Nothing -> do
       input <- getContents
-      process input
+      process scope input
