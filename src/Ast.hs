@@ -1,14 +1,23 @@
 module Ast where
 
+import Data.IORef (IORef)
+import qualified Data.Map as M
+
 type Name = String
 
-data SExpr = SExpr [SExpr]
-           | Quote SExpr
-           | UNQuote SExpr
-           | UNQuoteSlice SExpr
-           | Deref SExpr
-           | Atomic Value
+newtype Fn = Fn ([SExpr] -> IO SExpr)
 
-data Value = VStr String
-           | VNum Int
-           | Symbol Name
+data SExpr = ENil
+           | EBool Bool
+           | ENum Int
+           | EString String
+           | EKeyword String
+           | ESymbol String
+           | EList [SExpr] SExpr
+           | EVector [SExpr] SExpr
+           | EMap (M.Map String SExpr) SExpr
+           | EAtom (IORef SExpr) SExpr
+           | Func Fn SExpr
+
+mkFunc fn = Func (Fn fn) ENil
+mkfuncWithMeta fn meta = Func (Fn fn) meta
