@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Ast
                      , Eval
+                     , Prologue
                      , Lexer
                      , Parser
   build-depends:       base >= 4.7 && < 5
@@ -33,6 +34,10 @@ executable clea
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , clea
+                     , containers
+                     , lens
+                     , haskeline
+                     , mtl
   default-language:    Haskell2010
 
 test-suite clea-test
