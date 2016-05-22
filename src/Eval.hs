@@ -2,7 +2,7 @@ module Eval where
 
 import Ast
 import Scope
-import Control.Monad (mapM)
+import Control.Monad (mapM, foldM)
 import Prelude hiding (lookup)
 import qualified Data.Map as M
 import qualified Data.Traversable as T
@@ -31,29 +31,59 @@ letBind env (b:e:xs) = do
 applyExpr :: SExpr -> Env -> IO SExpr
 applyExpr expr scope = case expr of
                          EList [] _ -> return expr
-                         EList (ESymbol "def!" : args) _ -> do
+                         EList (ESymbol "def!":args) _ -> do
                            case args of
-                             (a1@(ESymbol _) : a2 : []) -> do
+                             (a1@(ESymbol _):a2:[]) -> do
                                a2V <- eval a2 scope
                                insertValue scope a1 a2V
                              _ -> error "invalid def!"
-                         EList (ESymbol "let*" : args) _ -> do
+                         EList (ESymbol "let*":args) _ -> do
                            case args of
-                             (a1 : a2 : []) -> do
+                             (a1:a2:[]) -> do
                                params <- mkList a1
                                letScope <- createScope $ Just scope
                                -- evaluate k v pair and insert to current scope
                                letBind letScope params
                                eval a2 letScope
                              _ -> error "invalid let*"
+                         EList (ESymbol "do":args) _ -> do
+                           case args of
+                             [] -> return ENil
+                             _ -> do
+                               el <- evalExpr (EList args ENil) scope
+                               case el of
+                                 (EList exprs _) -> return $ last exprs
+                         EList (ESymbol "if":args) _ -> do
+                           case args of
+                             (cond:conse:alt:[]) -> do
+                               condV <- eval cond scope
+                               if condV == (EBool False) || condV == ENil
+                               then eval alt scope
+                               else eval conse scope
+                             (cond:conse:[]) -> do
+                               condV <- eval cond scope
+                               if condV == (EBool False) || condV == ENil
+                               then return ENil
+                               else eval conse scope
+                             _ -> error "invalid if"
+                         EList (ESymbol "fn*":args) _ -> do
+                           case args of
+                             (params:body:[]) -> do
+                               params <- mkList params
+                               return $ mkFunc (\args -> do
+                                                  initEnv <- createScope $ Just scope
+                                                  bindArgEnv <- bindScope initEnv params args
+                                                  eval body bindArgEnv)
+                             _ -> error "invalid fn*"
                          EList _ _ -> do
                            el <- evalExpr expr scope
                            case el of
-                             EList ((Func (Fn f) _) : args) _ -> f $ args
+                             EList ((Func (Fn f) _):args) _ -> f $ args
                              _ -> error "should apply args to a function."
 
 eval :: SExpr -> Env -> IO SExpr
 eval expr scope = do
   case expr of
+    EProgram instrs -> foldM (\_ instr -> eval instr scope) ENil instrs
     EList _ _ -> applyExpr expr scope
     _ -> evalExpr expr scope

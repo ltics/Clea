@@ -1,5 +1,6 @@
 module Ast where
 
+import Data.List (intercalate)
 import Data.IORef (IORef, readIORef)
 import System.IO.Unsafe (unsafePerformIO)
 import qualified Data.Map as M
@@ -11,7 +12,10 @@ newtype Fn = Fn ([SExpr] -> IO SExpr)
 data EnvData = EnvPair (Maybe Env, (M.Map String SExpr))
 type Env = IORef EnvData
 
+-- syntax is also value
+
 data SExpr = ENil
+           | EProgram [SExpr]
            | EBool Bool
            | ENum Int
            | EString String
@@ -44,6 +48,7 @@ unescape chr = case chr of
     c    -> [c]
 
 stringOfExpr :: Bool -> SExpr -> String
+stringOfExpr _     (EProgram instrs) = intercalate "" $ map (\instr -> show instr ++ "\n") instrs
 stringOfExpr _     (EKeyword key) = ":" ++ key
 stringOfExpr True  (EString str) = "\"" ++ concatMap unescape str ++ "\""
 stringOfExpr False (EString str) = str

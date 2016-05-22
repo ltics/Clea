@@ -32,6 +32,8 @@ import qualified Data.Map as M
 
 %%
 
+Program : Forms                   { EProgram $1 }
+
 Form : Macro                      { $1 }
      | List                       { $1 }
      | Vector                     { $1 }

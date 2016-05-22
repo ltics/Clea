@@ -23,8 +23,7 @@ bindScope envRef binds exprs = do
         -- Varargs binding
         _ <- mapM (\(b,e) -> insertValue envRef b e) $
             zip (take idx binds) (take idx exprs)
-        _ <- insertValue envRef (binds !! (idx + 1))
-                            (EList (drop idx exprs) ENil)
+        _ <- insertValue envRef (binds !! (idx + 1)) (EList (drop idx exprs) ENil)
         return envRef
 
 lookupScope :: Env -> SExpr -> IO (Maybe Env)
