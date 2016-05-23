@@ -195,6 +195,23 @@ swap ((EAtom ref _):args) = do
   _ <- writeIORef ref $ new_val
   return new_val
 
+withMeta ((EList lst _):m:[]) = return $ EList lst m
+withMeta ((EVector lst _):m:[]) = return $ EVector lst m
+withMeta ((EMap hm _):m:[]) = return $ EMap hm m
+withMeta ((EAtom atm _):m:[]) = return $ EAtom atm m
+withMeta ((Func f _):m:[]) = return $ Func f m
+withMeta ((TcoFunc {fn = f, ast = a, env = e, params = p, ismacro = mc}):m:[]) =
+ return $ TcoFunc {fn = f, ast = a, env = e, params = p, ismacro = mc, meta = m}
+withMeta _ = error $ "invalid with-meta call"
+
+doMeta ((EList _ m):[]) = return m
+doMeta ((EVector _ m):[]) = return m
+doMeta ((EMap _ m):[]) = return m
+doMeta ((EAtom _ m):[]) = return m
+doMeta ((Func _ m):[]) = return m
+doMeta ((TcoFunc {meta = m}):[]) = return m
+doMeta _ = error $ "invalid meta call"
+
 builtins = [("=", mkFunc isEqual),
             ("≠", mkFunc isNotEqual),
             ("+", mkFunc $ numOp (+)),
@@ -247,4 +264,6 @@ builtins = [("=", mkFunc isEqual),
             ("get", mkFunc $ get),
             ("contains?", mkFunc $ isContains),
             ("keys", mkFunc $ keys),
-            ("vals", mkFunc $ vals)]
+            ("vals", mkFunc $ vals),
+            ("with-meta", mkFunc $ withMeta),
+            ("meta", mkFunc $ doMeta)]

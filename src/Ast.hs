@@ -14,6 +14,7 @@ type Env = IORef EnvData
 
 -- syntax is also value
 
+-- last expr is just a placeholder for metadata
 data SExpr = ENil
            | EProgram [SExpr]
            | EBool Bool
