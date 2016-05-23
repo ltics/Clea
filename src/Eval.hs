@@ -7,6 +7,16 @@ import Prelude hiding (lookup)
 import qualified Data.Map as M
 import qualified Data.Traversable as T
 
+syntaxquote :: SExpr -> SExpr
+syntaxquote expr =
+  case expr of
+    EList ((ESymbol "unquote"):expr:[]) _ -> expr -- unquote a expr and try to eval it
+    EList ((EList ((ESymbol "unquote-slice"):expr:[]) _):rest) _ -> EList [(ESymbol "concat"), expr, syntaxquote (EList rest ENil)] ENil
+    EVector ((EList ((ESymbol "unquote-slice"):expr:[])_):rest) _ -> EList [(ESymbol "concat"), expr, syntaxquote (EVector rest ENil)] ENil
+    EList (expr:rest) _ -> EList [(ESymbol "cons"), syntaxquote expr, syntaxquote (EList rest ENil)] ENil
+    EVector (expr:rest) _ -> EList [(ESymbol "cons"), syntaxquote expr, syntaxquote (EVector rest ENil)] ENil
+    _ -> EList [(ESymbol "quote"), expr] ENil -- just quote it
+
 evalExpr :: SExpr -> Env -> IO SExpr
 evalExpr expr scope = case expr of
                         ESymbol _ -> lookupValue scope expr
@@ -33,14 +43,14 @@ applyExpr expr scope = case expr of
                          EList [] _ -> return expr
                          EList (ESymbol "def!":args) _ -> do
                            case args of
-                             (a1@(ESymbol _):a2:[]) -> do
+                             (expr@(ESymbol _):a2:[]) -> do
                                a2V <- eval a2 scope
-                               insertValue scope a1 a2V
+                               insertValue scope expr a2V
                              _ -> error "invalid def!"
                          EList (ESymbol "let*":args) _ -> do
                            case args of
-                             (a1:a2:[]) -> do
-                               params <- mkList a1
+                             (expr:a2:[]) -> do
+                               params <- mkList expr
                                letScope <- createScope $ Just scope
                                -- evaluate k v pair and insert to current scope
                                letBind letScope params
@@ -76,6 +86,14 @@ applyExpr expr scope = case expr of
                                                     bindEnv <- bindScope initEnv params args
                                                     eval body bindEnv)
                              _ -> error "invalid fn*"
+                         EList (ESymbol "quote":args) _ -> do
+                           case args of
+                             expr:[] -> return expr -- return expr without eval
+                             _ -> error "invalid quote"
+                         EList (ESymbol "syntaxquote":args) _ -> do
+                           case args of
+                             expr : [] -> eval (syntaxquote expr) scope
+                             _ -> error "invalid syntaxquote"
                          EList _ _ -> do
                            el <- evalExpr expr scope
                            case el of
