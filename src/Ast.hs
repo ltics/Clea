@@ -80,7 +80,7 @@ instance Eq SExpr where
   _ == _ = False
 
 getFn ((Func (Fn f) _):_) = return f
-getFn (TcoFunc {fn=(Fn f)}:_) = return f
+getFn (TcoFunc {fn = (Fn f)}:_) = return f
 getFn _ = error "getFn first parameter is not a function "
 
 toList (EList lst _) = return lst

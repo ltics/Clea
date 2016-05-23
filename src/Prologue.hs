@@ -2,6 +2,7 @@ module Prologue where
 
 import Ast
 import Scope
+import Eval (isMacroCall)
 import Parser (parseExpr)
 import System.IO (hFlush, stdout)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)

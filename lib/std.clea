@@ -1,3 +1,15 @@
-(def not (λ [a] (if a false true)))
+(defmacro defn
+  [name args & body]
+  `(def ~name (λ ~args ~@body)))
 
-(def load-file (λ [f] (eval (read-string (str "(do " (slurp f) ")")))))
+(defmacro unless
+  [pred a b]
+  `(if ~pred ~b ~a))
+
+(defn not
+  [a]
+  (if a false true))
+
+(defn load-file
+  [f]
+  (eval (read-string (str "(do " (slurp f) ")"))))
