@@ -94,6 +94,15 @@ applyExpr expr scope = case expr of
                            case args of
                              expr : [] -> eval (syntaxquote expr) scope
                              _ -> error "invalid syntaxquote"
+                         EList (EKeyword k:expr:[]) _ -> do
+                           exprV <- eval expr scope
+                           case exprV of
+                             EMap hm _ -> case M.lookup k hm of
+                                           Just mv -> return mv
+                                           Nothing -> return ENil
+                             _ -> do
+                               putStrLn $ show exprV
+                               return ENil
                          EList _ _ -> do
                            el <- evalExpr expr scope
                            case el of

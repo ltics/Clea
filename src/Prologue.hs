@@ -98,6 +98,61 @@ doSeq (EString s:[]) = return $ EList [EString [c] | c <- s] ENil
 doSeq (ENil:[]) = return $ ENil
 doSeq _ = error $ "seq: called on non-sequence"
 
+mkPair [x] = error "Odd number of elements to mkPair"
+mkPair [] = return []
+mkPair ((EString x):y:xs) = do
+  rest <- mkPair xs
+  return $ (x, y):rest
+mkPair ((EKeyword x):y:xs) = do
+  rest <- mkPair xs
+  return $ (x, y):rest
+
+hashMap args = do
+  pairs <- mkPair args
+  return $ EMap (M.fromList pairs) ENil
+
+assoc (EMap hm _:kvs) = do
+  pairs <- mkPair kvs
+  return $ EMap (M.union (M.fromList pairs) hm) ENil
+assoc _ = error "invalid call to assoc"
+
+dissoc (EMap hm _:ks) = do
+  let remover = (\hm key -> case key of
+                             EString k -> M.delete k hm
+                             EKeyword k -> M.delete k hm) in
+      return $ EMap (foldl remover hm ks) ENil
+dissoc _ = error "invalid call to dissoc"
+
+get (EMap hm _:EString k:[]) = do
+  case M.lookup k hm of
+    Just mv -> return mv
+    Nothing -> return ENil
+get (EMap hm _:EKeyword k:[]) = do
+  case M.lookup k hm of
+    Just mv -> return mv
+    Nothing -> return ENil
+get (ENil:EString k:[]) = return ENil
+get (ENil:EKeyword k:[]) = return ENil
+get _ = error "invalid call to get"
+
+isContains (EMap hm _:EString k:[]) = do
+  if M.member k hm then return trueV
+  else return falseV
+isContains (ENil:EString k:[]) = return falseV
+isContains (EMap hm _:EKeyword k:[]) = do
+  if M.member k hm then return trueV
+  else return falseV
+isContains (ENil:EKeyword k:[]) = return falseV
+isContains _ = error "invalid call to contains?"
+
+keys (EMap hm _:[]) = do
+  return $ EList (map EKeyword (M.keys hm)) ENil
+keys _ = error "invalid call to keys"
+
+vals (EMap hm _:[]) = do
+  return $ EList (M.elems hm) ENil
+vals _ = error "invalid call to vals"
+
 prStr args = return $ EString $ stringOfList True " " args
 
 str args = return $ EString $ stringOfList False "" args
@@ -183,4 +238,12 @@ builtins = [("=", mkFunc isEqual),
             ("apply", mkFunc $ apply),
             ("map", mkFunc $ doMap),
             ("conj", mkFunc $ conj),
-            ("seq", mkFunc $ doSeq)]
+            ("seq", mkFunc $ doSeq),
+            ("hash-map", mkFunc $ hashMap),
+            ("map?", mkFunc $ run1 isMap),
+            ("assoc", mkFunc $ assoc),
+            ("dissoc", mkFunc $ dissoc),
+            ("get", mkFunc $ get),
+            ("contains?", mkFunc $ isContains),
+            ("keys", mkFunc $ keys),
+            ("vals", mkFunc $ vals)]
