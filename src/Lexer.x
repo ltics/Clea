@@ -6,7 +6,7 @@ import Data.Char (toUpper)
 %wrapper "basic"
 
 $digit = [0-9]
-$char = [a-zA-Z\!\#\$\%\&\|\*\+\-\/\:\<\=\>\?\@\^\_\~]
+$char = [a-zA-Z\!\#\$\%\&\|\*\+\-\/\:\<\=\>\?\@\^\_\~\λ\≥\≤\≠]
 $dc = [$char $digit]
 $eol = [\n]
 

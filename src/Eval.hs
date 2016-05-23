@@ -41,7 +41,7 @@ letBind env (b:e:xs) = do
 applyExpr :: SExpr -> Env -> IO SExpr
 applyExpr expr scope = case expr of
                          EList [] _ -> return expr
-                         EList (ESymbol "def!":args) _ -> do
+                         EList (ESymbol "def":args) _ -> do
                            case args of
                              (expr@(ESymbol _):a2:[]) -> do
                                a2V <- eval a2 scope
@@ -76,7 +76,7 @@ applyExpr expr scope = case expr of
                                then return ENil
                                else eval conse scope
                              _ -> error "invalid if"
-                         EList (ESymbol "fn*":args) _ -> do
+                         EList (ESymbol "λ":args) _ -> do
                            case args of
                              (params:body:[]) -> do
                                params <- mkList params

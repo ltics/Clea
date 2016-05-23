@@ -6,10 +6,12 @@ import Parser (parseExpr)
 import System.IO (hFlush, stdout)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import qualified Data.Map as M
-import Prelude hiding (concat)
 
 isEqual [a, b] = return $ if a == b then trueV else falseV
 isEqual _ = error "illegal arguments to ="
+
+isNotEqual [a, b] = return $ if a /= b then trueV else falseV
+isNotEqual _ = error "illegal arguments to ≠"
 
 run1 :: (SExpr -> SExpr) -> [SExpr] -> IO SExpr
 run1 f (x:[]) = return $ f x
@@ -44,7 +46,57 @@ cons x (EVector lst _) = EList (x:lst) ENil
 
 concat1 a (EList lst _) = a ++ lst
 concat1 a (EVector lst _) = a ++ lst
-concat args = return $ EList (foldl concat1 [] args) ENil
+doConcat args = return $ EList (foldl concat1 [] args) ENil
+
+nth ((EList lst _):(ENum idx):[]) = do
+  if idx < length lst then return $ lst !! idx
+  else error "nth: index out of range"
+nth ((EVector lst _):(ENum idx):[]) = do
+  if idx < length lst then return $ lst !! idx
+  else error "nth: index out of range"
+nth _ = error "invalid call to nth"
+
+first ENil = ENil
+first (EList lst _) = if length lst > 0 then lst !! 0 else ENil
+first (EVector lst _) = if length lst > 0 then lst !! 0 else ENil
+
+rest ENil = EList [] ENil
+rest (EList lst _) = EList (drop 1 lst) ENil
+rest (EVector lst _) = EList (drop 1 lst) ENil
+
+isEmpty ENil = trueV
+isEmpty (EList [] _) = trueV
+isEmpty (EVector [] _) = trueV
+isEmpty _ = falseV
+
+count (ENil:[]) = return $ ENum 0
+count (EList lst _:[]) = return $ ENum $ length lst
+count (EVector lst _:[]) = return $ ENum $ length lst
+count _ = error $ "non-sequence passed to count"
+
+apply args = do
+  f <- getFn args
+  lst <- toList $ last args
+  f lst
+
+doMap args = do
+  f <- getFn args
+  lst <- toList (args !! 1)
+  do new_lst <- mapM (\x -> f [x]) lst
+     return $ EList new_lst ENil
+
+conj ((EList lst _):args) = return $ EList ((reverse args) ++ lst) ENil
+conj ((EVector lst _):args) = return $ EVector (lst ++ args) ENil
+conj _ = error $ "illegal arguments to conj"
+
+doSeq ((EList [] _):[]) = return $ ENil
+doSeq (l@(EList _ _):[]) = return $ l
+doSeq (EVector [] _:[]) = return $ ENil
+doSeq (EVector lst _:[]) = return $ EList lst ENil
+doSeq (EString []:[]) = return $ ENil
+doSeq (EString s:[]) = return $ EList [EString [c] | c <- s] ENil
+doSeq (ENil:[]) = return $ ENil
+doSeq _ = error $ "seq: called on non-sequence"
 
 prStr args = return $ EString $ stringOfList True " " args
 
@@ -87,7 +139,9 @@ swap ((EAtom ref _):args) = do
   _ <- writeIORef ref $ new_val
   return new_val
 
-builtins = [("+", mkFunc $ numOp (+)),
+builtins = [("=", mkFunc isEqual),
+            ("≠", mkFunc isNotEqual),
+            ("+", mkFunc $ numOp (+)),
             ("-", mkFunc $ numOp (-)),
             ("*", mkFunc $ numOp (*)),
             ("/", mkFunc $ numOp (div)),
@@ -120,4 +174,13 @@ builtins = [("+", mkFunc $ numOp (+)),
             ("vector?", mkFunc $ run1 isVector),
             ("seq?", mkFunc $ run1 isSeq),
             ("cons", mkFunc $ run2 $ cons),
-            ("concat", mkFunc $ concat)]
+            ("concat", mkFunc $ doConcat),
+            ("nth", mkFunc nth),
+            ("first", mkFunc $ run1 $ first),
+            ("rest", mkFunc $ run1 $ rest),
+            ("empty?", mkFunc $ run1 $ isEmpty),
+            ("count", mkFunc $ count),
+            ("apply", mkFunc $ apply),
+            ("map", mkFunc $ doMap),
+            ("conj", mkFunc $ conj),
+            ("seq", mkFunc $ doSeq)]

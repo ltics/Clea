@@ -67,6 +67,7 @@ Atom : number                     { ENum $1 }
 mkPairs [] = []
 mkPairs [_] = error "Odd number of elements to pairs"
 mkPairs ((EString k):v:t) = (k, v) : (mkPairs t)
+mkPairs ((EKeyword k):v:t) = (k, v) : (mkPairs t)
 
 parseError :: [Token] -> a
 parseError _ = error "Parse error"
