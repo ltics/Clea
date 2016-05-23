@@ -79,6 +79,14 @@ instance Eq SExpr where
   (EAtom a _) == (EAtom b _) = a == b
   _ == _ = False
 
+getFn ((Func (Fn f) _):_) = return f
+getFn (TcoFunc {fn=(Fn f)}:_) = return f
+getFn _ = error "getFn first parameter is not a function "
+
+toList (EList lst _) = return lst
+toList (EVector lst _) = return lst
+toList _ = error "toList expected a EList or EVector"
+
 mkFunc fn = Func (Fn fn) ENil
 mkfuncWithMeta fn meta = Func (Fn fn) meta
 
@@ -98,3 +106,36 @@ mkTcoFuncWithMeta ast env params fn meta = TcoFunc {fn = (Fn fn),
 mkList (EList lst _) = return lst
 mkList (EVector lst _) = return lst
 mkList _ = error "mkList expected a List or Vector"
+
+trueV = EBool True
+falseV = EBool False
+
+isNil ENil = trueV
+isNil _ = falseV
+
+isTrue (EBool True) = trueV
+isTrue _ = falseV
+
+isFalse (EBool False) = trueV
+isFalse _ = falseV
+
+isSymbol (ESymbol _) = trueV
+isSymbol _ = falseV
+
+isString (EString _) = trueV
+isString _ = falseV
+
+isKeyword (ESymbol _) = trueV
+isKeyword _ = falseV
+
+isList (EList _ _) = trueV
+isList _ = falseV
+
+isVector (EVector _ _) = trueV
+isVector _ = falseV
+
+isMap (EMap _ _) = trueV
+isMap _ = falseV
+
+isAtom (EAtom _ _) = trueV
+isAtom _ = falseV

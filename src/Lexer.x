@@ -29,7 +29,7 @@ tokens :-
        "nil"                       { \_ -> NIL }
        \"[^\"]*\"                  { \s -> STRING ((tail . init) s) }
        $digit+                     { \s -> NUMBER (read s) }
-       '-' $digit+                 { \s -> NUMBER (- (read s)) }
+       "-" $digit+                 { \s -> NUMBER (read s) }
        "true" | "false"            { \s -> BOOLEAN (read ([toUpper (s!!0)] ++ tail s)) }
        ":" $char $dc*              { \s -> KEYWORD (tail s) }
        $char $dc*                  { \s -> SYMBOL s }
