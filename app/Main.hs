@@ -2,7 +2,7 @@ module Main where
 
 import Scope
 import Eval (eval)
-import Ast (Env, SExpr(..))
+import Ast (Env, SExpr(..), mkFunc)
 import Parser (parseExpr)
 import Prologue (builtins)
 import Control.Lens
@@ -52,14 +52,13 @@ main = do
   scope <- emptyScope
   mapM_ (\(k, v) -> (insertValue scope (ESymbol k) v)) builtins
   loadlib scope
+  insertValue scope (ESymbol "eval") (mkFunc (\[ast] -> eval ast scope))
   case (args ^? element 0) of
     Just arg -> if arg == "repl"
                then do
                 putStrLn prologueMessage
                 runInputT defaultSettings (loop scope)
-               else do
-                file <- readFile arg
-                process scope file
+               else process scope $ "(load-file \"" ++ arg ++ "\")"
     Nothing -> do
       input <- getContents
       process scope input
