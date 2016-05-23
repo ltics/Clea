@@ -2,6 +2,7 @@ module Prologue where
 
 import Ast
 import Scope
+import Debug.Trace
 import Eval (isMacroCall)
 import Parser (parseExpr)
 import System.IO (hFlush, stdout)
@@ -212,6 +213,9 @@ doMeta ((Func _ m):[]) = return m
 doMeta ((TcoFunc {meta = m}):[]) = return m
 doMeta _ = error $ "invalid meta call"
 
+desugerStrV (EString msg) = msg
+desugerStrV _ = error $ "not string value"
+
 builtins = [("=", mkFunc isEqual),
             ("≠", mkFunc isNotEqual),
             ("+", mkFunc $ numOp (+)),
@@ -266,4 +270,6 @@ builtins = [("=", mkFunc isEqual),
             ("keys", mkFunc $ keys),
             ("vals", mkFunc $ vals),
             ("with-meta", mkFunc $ withMeta),
-            ("meta", mkFunc $ doMeta)]
+            ("meta", mkFunc $ doMeta),
+            ("print", mkFunc $ run1 (\v -> trace (desugerStrV v) ENil)),
+            ("error", mkFunc $ run1 (\v -> error $ desugerStrV v))]

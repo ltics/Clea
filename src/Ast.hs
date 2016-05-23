@@ -62,7 +62,7 @@ stringOfExpr pr    (EVector items _) = "[" ++ (stringOfList pr " " items) ++ "]"
 stringOfExpr pr    (EMap m _) = "{" ++ (stringOfList pr " " (flatTuples $ M.assocs m)) ++ "}"
 stringOfExpr pr    (EAtom r _) = "(atom " ++ (stringOfExpr pr (unsafePerformIO (readIORef r))) ++ ")"
 stringOfExpr _     (Func f _) = "<fun>"
-stringOfExpr _     (TcoFunc {ast = ast, env = fn_env, params = params}) = "(fn* " ++ (show params) ++ " " ++ (show ast) ++ ")"
+stringOfExpr _     (TcoFunc {ast = ast, env = fn_env, params = params}) = "(λ " ++ (show params) ++ " " ++ (show ast) ++ ")"
 
 instance Show SExpr where show = stringOfExpr True
 

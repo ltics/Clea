@@ -111,7 +111,7 @@ applyExpr expr scope = case expr of
                                                     initEnv <- createScope $ Just scope
                                                     bindEnv <- bindScope initEnv params args
                                                     eval body bindEnv)
-                             _ -> error "invalid fn*"
+                             _ -> error "invalid λ"
                          EList (ESymbol "quote":args) _ -> do
                            case args of
                              expr:[] -> return expr -- return expr without eval

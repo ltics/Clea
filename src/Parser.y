@@ -40,7 +40,7 @@ Form : Macro                      { $1 }
      | Map                        { $1 }
      | Atom                       { $1 }
 
-Forms : Form                      { [$1] }
+Forms : {- empty -}               { [] }
       | Form Forms                { $1 : $2 }
 
 Macro : quote Form                { EList [ESymbol "quote", $2] ENil }
