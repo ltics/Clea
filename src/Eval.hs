@@ -164,7 +164,7 @@ applyExpr expr scope = case expr of
                                      initEnv <- createScope $ Just fnEnv
                                      bindEnv <- bindScope initEnv params args
                                      eval body bindEnv
-                                   _ -> error "should apply args to a function"
+                                   e -> error $ "should apply args to a function: " ++ show e
                                _ -> return ast
 
 eval :: SExpr -> Env -> IO SExpr
