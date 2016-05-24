@@ -4,7 +4,7 @@ import Ast
 import Scope
 import Debug.Trace
 import Control.Monad (mapM, foldM)
-import Eval (isMacroCall)
+import Eval (isMacroCall, eval)
 import Parser (parseExpr)
 import System.IO (hFlush, stdout)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
@@ -229,6 +229,13 @@ doMeta _ = error $ "invalid meta call"
 
 desugerStrV (EString msg) = msg
 desugerStrV _ = error $ "not string value"
+
+loadlib :: Env -> IO ()
+loadlib scope = do
+  std <- readFile "./lib/std.clea"
+  let stdast = parseExpr std
+  eval stdast scope
+  return ()
 
 builtins = [("=", mkFunc isEqual),
             ("≠", mkFunc isNotEqual),

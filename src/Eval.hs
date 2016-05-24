@@ -69,18 +69,18 @@ applyExpr expr scope = case expr of
                          EList [] _ -> return expr
                          EList (ESymbol "def":args) _ -> do
                            case args of
-                             (expr@(ESymbol _):a2:[]) -> do
-                               a2V <- eval a2 scope
+                             (expr@(ESymbol _):body:[]) -> do
+                               a2V <- eval body scope
                                insertValue scope expr a2V
                              _ -> error "invalid def"
                          EList (ESymbol "let*":args) _ -> do
                            case args of
-                             (expr:a2:[]) -> do
-                               params <- mkList expr
+                             (binds:body:[]) -> do
+                               params <- mkList binds
                                letScope <- createScope $ Just scope
                                -- evaluate k v pair and insert to current scope
                                letBind letScope params
-                               eval a2 letScope
+                               eval body letScope
                              _ -> error "invalid let*"
                          EList (ESymbol "do":args) _ -> do
                            case args of

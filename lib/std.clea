@@ -94,7 +94,7 @@
 
 (defn filter
   [f l]
-  (foldl (λ [acc e]
+  (foldr (λ [e acc]
            (cond
              (f e) (cons e acc)
              else acc))
@@ -114,3 +114,29 @@
 (defn reverse
   [l]
   (foldl (λ [acc e] (cons e acc)) nil l))
+
+(defmacro ->
+  [x & xs]
+  (if (empty? xs)
+    x
+    (let [form (first xs)
+          more (rest xs)]
+      (if (empty? more)
+        (if (list? form)
+          ;; as the first argument
+          `(~(first form) ~x ~@(rest form))
+          `(~form ~x))
+        `(-> (-> ~x ~form) ~@more)))))
+
+(defmacro ->>
+  [x & xs]
+  (if (empty? xs)
+    x
+    (let [form (first xs)
+          more (rest xs)]
+      (if (empty? more)
+        (if (list? form)
+          ;; as the last argument
+          `(~(first form) ~@(rest form) ~x)
+          `(~form ~x))
+        `(->> (->> ~x ~form) ~@more)))))

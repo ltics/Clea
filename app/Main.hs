@@ -4,7 +4,7 @@ import Scope
 import Eval (eval)
 import Ast (Env, SExpr(..), mkFunc)
 import Parser (parseExpr)
-import Prologue (builtins)
+import Prologue (builtins, loadlib)
 import Control.Lens
 import Control.Monad.Trans
 import System.Environment
@@ -13,13 +13,6 @@ import Data.List (intercalate)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Control.Exception as E
-
-loadlib :: Env -> IO ()
-loadlib scope = do
-  std <- readFile "./lib/std.clea"
-  let stdast = parseExpr std
-  eval stdast scope
-  return ()
 
 process :: Env -> String -> IO ()
 process scope expr = E.catch (do
