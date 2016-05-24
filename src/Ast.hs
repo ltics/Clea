@@ -84,9 +84,9 @@ getFn ((Func (Fn f) _):_) = return f
 getFn (TcoFunc {fn = (Fn f)}:_) = return f
 getFn _ = error "getFn first parameter is not a function "
 
-toList (EList lst _) = return lst
-toList (EVector lst _) = return lst
-toList _ = error "toList expected a EList or EVector"
+mkList (EList lst _) = return lst
+mkList (EVector lst _) = return lst
+mkList _ = error "mkList expected a EList or EVector"
 
 mkFunc fn = Func (Fn fn) ENil
 mkfuncWithMeta fn meta = Func (Fn fn) meta
@@ -103,10 +103,6 @@ mkTcoFuncWithMeta ast env params fn meta = TcoFunc {fn = (Fn fn),
                                                     params = params,
                                                     ismacro = False,
                                                     meta = meta}
-
-mkList (EList lst _) = return lst
-mkList (EVector lst _) = return lst
-mkList _ = error "mkList expected a List or Vector"
 
 trueV = EBool True
 falseV = EBool False

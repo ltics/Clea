@@ -80,25 +80,25 @@ count _ = error $ "non-sequence passed to count"
 
 apply args = do
   f <- getFn args
-  lst <- toList $ last args
+  lst <- mkList $ last args
   f lst
 
 doMap args = do
   f <- getFn args
-  lst <- toList (args !! 1)
+  lst <- mkList (args !! 1)
   newLst <- mapM (\x -> f [x]) lst
   return $ EList newLst ENil
 
 doFoldl args = do
   f <- getFn args
   let acc = args !! 1
-  l <- toList $ last args
+  l <- mkList $ last args
   foldM (\a x -> f [a, x]) acc l
 
 doFoldr args = do
   f <- getFn args
   let acc = args !! 1
-  l <- toList $ last args
+  l <- mkList $ last args
   foldM (\a x -> f [x, a]) acc $ reverse l
 
 conj ((EList lst _):args) = return $ EList ((reverse args) ++ lst) ENil
