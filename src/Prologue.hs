@@ -3,6 +3,7 @@ module Prologue where
 import Ast
 import Scope
 import Debug.Trace
+import Control.Monad (mapM, foldM)
 import Eval (isMacroCall)
 import Parser (parseExpr)
 import System.IO (hFlush, stdout)
@@ -45,6 +46,7 @@ vector args = return $ EVector args ENil
 cons x ENil = EList [x] ENil
 cons x (EList lst _) = EList (x:lst) ENil
 cons x (EVector lst _) = EList (x:lst) ENil
+cons x e = error $ "illegal cons: " ++ show e
 
 concat1 a (EList lst _) = a ++ lst
 concat1 a (EVector lst _) = a ++ lst
@@ -84,8 +86,20 @@ apply args = do
 doMap args = do
   f <- getFn args
   lst <- toList (args !! 1)
-  do new_lst <- mapM (\x -> f [x]) lst
-     return $ EList new_lst ENil
+  newLst <- mapM (\x -> f [x]) lst
+  return $ EList newLst ENil
+
+doFoldl args = do
+  f <- getFn args
+  let acc = args !! 1
+  l <- toList $ last args
+  foldM (\a x -> f [a, x]) acc l
+
+doFoldr args = do
+  f <- getFn args
+  let acc = args !! 1
+  l <- toList $ last args
+  foldM (\a x -> f [x, a]) acc $ reverse l
 
 conj ((EList lst _):args) = return $ EList ((reverse args) ++ lst) ENil
 conj ((EVector lst _):args) = return $ EVector (lst ++ args) ENil
@@ -260,7 +274,9 @@ builtins = [("=", mkFunc isEqual),
             ("empty?", mkFunc $ run1 $ isEmpty),
             ("count", mkFunc $ count),
             ("apply", mkFunc $ apply),
-            ("map", mkFunc $ doMap),
+            ("map*", mkFunc $ doMap),
+            ("foldl", mkFunc $ doFoldl),
+            ("foldr", mkFunc $ doFoldr),
             ("conj", mkFunc $ conj),
             ("seq", mkFunc $ doSeq),
             ("hash-map", mkFunc $ hashMap),

@@ -85,3 +85,32 @@
 (defn odd?
   [n]
   (not (even? n)))
+
+(defn map
+  [f l]
+  (foldr (λ [e acc]
+           (cons (f e) acc))
+         '() l))
+
+(defn filter
+  [f l]
+  (foldl (λ [acc e]
+           (cond
+             (f e) (cons e acc)
+             else acc))
+         '() l))
+
+;; cause there is no multi definition dispatch, so put the default acc as the last param
+(defn reduce
+  [f l & acc]
+  (cond
+    (empty? acc) (foldl f (f (car l) (cadr l)) (cddr l))
+    else (foldl f (car acc) l)))
+
+(defn append
+  [& lists]
+  (reduce (λ [lst1 lst2] (foldr (λ [head tail] (cons head tail)) lst2 lst1)) lists))
+
+(defn reverse
+  [l]
+  (foldl (λ [acc e] (cons e acc)) nil l))
