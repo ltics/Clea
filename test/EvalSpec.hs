@@ -66,5 +66,10 @@ spec = describe "evaluation test" $ do
                             ("(-> (list 7 8 9) rest (rest) first (- 7))", "2"),
                             ("(->> 7)", "7"),
                             ("(->> (list 7 8 9) first)", "7"),
-                            ("(->> (list 7 8 9) rest (rest) first (- 7))", "-2")]
+                            ("(->> (list 7 8 9) rest (rest) first (- 7))", "-2"),
+                            ("(cond)", "nil"),
+                            ("(cond true 7 true 8)", "7"),
+                            ("(cond false 7 (= 2 2) 8 else 9)", "8"),
+                            ("(cond false 7 false 8 false 9)", "nil"),
+                            ("(cond false 7 false 8 else 9)", "9")]
 

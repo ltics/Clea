@@ -16,11 +16,11 @@ import qualified Control.Exception as E
 
 process :: Env -> String -> IO ()
 process scope expr = E.catch (do
-                        let ast = parseExpr expr
-                        result <- eval ast scope
-                        putStrLn $ show result)
-                       (\(E.ErrorCall e) -> do
-                        putStrLn e)
+                              let ast = parseExpr expr
+                              result <- eval ast scope
+                              putStrLn $ show result)
+                             (\(E.ErrorCall e) -> do
+                              putStrLn e)
 
 loop :: Env -> InputT IO ()
 loop scope = do

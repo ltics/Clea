@@ -25,13 +25,13 @@
   (symbol (str "G__" (swap! *gensym-counter* (λ [x] (+ 1 x))))))
 
 (defmacro cond
-  [& xs]
-  `(if (> ~(count xs) 0)
-    (if (or (= '~(first xs) 'else) ~(first xs))
-       (if (> ~(count xs) 1)
-         ~(nth xs 1)
-         (error "odd number of forms to cond"))
-    (cond ~@(rest (rest xs))))))
+  [& clauses]
+  (if (> (count clauses) 0)
+    (list 'if (or (= (first clauses) 'else) (first clauses))
+          (if (> (count clauses) 1)
+              (nth clauses 1)
+              (prn "cond requires an even number of forms"))
+          (cons 'cond (rest (rest clauses))))))
 
 (ƒ let-fn
   [bindings body]
@@ -71,10 +71,10 @@
              (or ~@(rest xs))))))))
 
 (defmacro is [form]
-  `(cond (not ~form) (print (str "Assertion failed:" (quote ~form)))))
+  `(cond (not ~form) (prn (str "Assertion failed:" (quote ~form)))))
 
 (defmacro is= [& body]
-  `(cond (not (= ~@body)) (print (str "Equal Assertion failed"))))
+  `(cond (not (= ~@body)) (prn (str "Equal Assertion failed"))))
 
 (ƒ even?
   [n]
