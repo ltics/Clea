@@ -1,14 +1,13 @@
 name:                clea
-version:             0.1.0.0
-synopsis:            Initial project template from stack, using hspec and quickcheck
+version:             0.1.0
+synopsis:            a tiny lisp dialect
 description:         Please see README.md
-homepage:            https://github.com/githubuser/clea#readme
+homepage:            https://github.com/zjhmale/Clea
 license:             BSD3
 license-file:        LICENSE
-author:              Author name here
-maintainer:          example@example.com
-copyright:           2016 Author name here
-category:            Web
+author:              zjhmale
+maintainer:          zjhmale@gmail.com
+copyright:           2016 zjhmale
 build-type:          Simple
 -- extra-source-files:
 cabal-version:       >=1.10
@@ -55,4 +54,4 @@ test-suite clea-test
 
 source-repository head
   type:     git
-  location: https://github.com/githubuser/clea
+  location: https://github.com/zjhmale/Clea
