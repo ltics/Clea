@@ -123,6 +123,9 @@ isFalse _ = falseV
 isSymbol (ESymbol _) = trueV
 isSymbol _ = falseV
 
+isNumber (ENum _) = trueV
+isNumber _ = falseV
+
 isString (EString _) = trueV
 isString _ = falseV
 
