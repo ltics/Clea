@@ -71,5 +71,15 @@ spec = describe "evaluation test" $ do
                             ("(cond true 7 true 8)", "7"),
                             ("(cond false 7 (= 2 2) 8 else 9)", "8"),
                             ("(cond false 7 false 8 false 9)", "nil"),
-                            ("(cond false 7 false 8 else 9)", "9")]
+                            ("(cond false 7 false 8 else 9)", "9"),
+                            -- lexical scope
+                            ("(let [x 2] (let [f (λ [y] (* x y))] (let [x 4] (f 3))))", "6"),
+                            ("((λ [y] (((λ [y] (λ [x] (* y 2))) 3) 0)) 4)", "6"),
+                            -- recursive function
+                            ("(def fact (λ [x] (if (< x 1) 1 (* x (fact (- x 1))))))", "(λ (x) (if (< x 1) 1 (* x (fact (- x 1)))))"),
+                            ("(fact 5)", "120"),
+                            ("(ƒ fact [n] (if (< n 1) 1 (* n (fact (- n 1)))))", "(λ (n) (if (< n 1) 1 (* n (fact (- n 1)))))"),
+                            ("(fact 5)", "120"),
+                            -- expand macro
+                            ("(macroexpand (ƒ fact [n] (if (< n 1) 1 (* n (fact (- n 1))))))", "(def fact (λ [n] (if (< n 1) 1 (* n (fact (- n 1))))))")]
 
